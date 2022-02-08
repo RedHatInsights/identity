@@ -14,8 +14,8 @@ import (
 )
 
 var validJson = [...]string{
-	`{ "identity": {"account_number": "540155", "type": "User", "internal": { "org_id": "1979710" } } }`,
-	`{ "identity": {"account_number": "540155", "type": "Associate", "internal": { "org_id": "1979710" } } }`,
+	`{ "identity": {"account_number": "540155", "org_id": "1979710", "type": "User", "internal": {"org_id": "1979710"} } }`,
+	`{ "identity": {"account_number": "540155", "org_id": "1979710", "type": "Associate", "internal": {"org_id": "1979710"} } }`,
 }
 
 func GetTestHandler(allowPass bool) http.HandlerFunc {
@@ -72,6 +72,7 @@ var _ = Describe("Identity", func() {
 					fn := func(rw http.ResponseWriter, nreq *http.Request) {
 						id, ok := identity.Get(nreq.Context())
 						Expect(ok).To(BeTrue())
+						Expect(id.Identity.OrgID).To(Equal("1979710"))
 						Expect(id.Identity.Internal.OrgID).To(Equal("1979710"))
 						Expect(id.Identity.AccountNumber).To(Equal("540155"))
 					}
@@ -142,7 +143,7 @@ var _ = Describe("Identity", func() {
 
 	Context("With missing account_number in the x-rh-id header", func() {
 		It("should throw a 400 with a descriptive message", func() {
-			req.Header.Set("x-rh-identity", getBase64(`{ "type": "User", "internal": { "org_id": "1979710" } }`))
+			req.Header.Set("x-rh-identity", getBase64(`{ "type": "User", "org_id": "1979710", "internal": { "org_id": "1979710" } }`))
 			boiler(req, 400, "Bad Request: x-rh-identity header has an invalid or missing account number\n")
 		})
 	})
@@ -173,7 +174,7 @@ var _ = Describe("Identity", func() {
 	Context("With missing org_id in the x-rh-id header", func() {
 		It("should throw a 400 with a descriptive message", func() {
 			for _, jsonIdentity := range validJson {
-				req.Header.Set("x-rh-identity", getBase64(strings.Replace(jsonIdentity, `"org_id": "1979710"`, "", 1)))
+				req.Header.Set("x-rh-identity", getBase64(strings.Replace(jsonIdentity, `"org_id": "1979710",`, "", 1)))
 				boiler(req, 400, "Bad Request: x-rh-identity header has an invalid or missing org_id\n")
 			}
 		})
@@ -181,7 +182,7 @@ var _ = Describe("Identity", func() {
 
 	Context("With missing type in the x-rh-id header", func() {
 		It("should throw a 400 with a descriptive message", func() {
-			req.Header.Set("x-rh-identity", getBase64(`{"identity":{"account_number":"540155","type":"", "internal":{"org_id":"1979710"}}}`))
+			req.Header.Set("x-rh-identity", getBase64(`{"identity":{"account_number":"540155","type":"", "org_id":"1979710", "internal":{"org_id":"1979710"}}}`))
 			boiler(req, 400, "Bad Request: x-rh-identity header is missing type\n")
 		})
 	})
