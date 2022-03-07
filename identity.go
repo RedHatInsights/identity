@@ -46,6 +46,7 @@ type X509 struct {
 // Identity is the main body of the XRHID
 type Identity struct {
 	AccountNumber string                 `json:"account_number"`
+	OrgID         string                 `json:"org_id"`
 	Internal      Internal               `json:"internal"`
 	User          User                   `json:"user,omitempty"`
 	System        map[string]interface{} `json:"system,omitempty"`
@@ -109,7 +110,7 @@ func BasePolicy(next http.Handler) http.Handler {
 			return
 		}
 
-		if id.Identity.Internal.OrgID == "" {
+		if id.Identity.OrgID == "" || id.Identity.Internal.OrgID == "" {
 			doError(w, 400, "x-rh-identity header has an invalid or missing org_id")
 			return
 		}
@@ -148,8 +149,18 @@ func Extractor(next http.Handler) http.Handler {
 			return
 		}
 
+		topLevelOrgIDFallback(&jsonData)
+
 		ctx := context.WithValue(r.Context(), Key, jsonData)
 		ctx = context.WithValue(ctx, IDHeaderKey, rawHeaders[0])
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// if org_id is not defined at the top level, use the internal one
+// https://issues.redhat.com/browse/RHCLOUD-17717
+func topLevelOrgIDFallback(identity *XRHID) {
+	if identity.Identity.OrgID == "" && identity.Identity.Internal.OrgID != "" {
+		identity.Identity.OrgID = identity.Identity.Internal.OrgID
+	}
 }
