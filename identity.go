@@ -55,9 +55,16 @@ type Identity struct {
 	Type          string                 `json:"type"`
 }
 
+// ServiceDetails describe the services the org is entitled to
+type ServiceDetails struct {
+	IsEntitled bool `json:"is_entitled"`
+	IsTrial    bool `json:"is_trial"`
+}
+
 // XRHID is the "identity" pricipal object set by Cloud Platform 3scale
 type XRHID struct {
-	Identity Identity `json:"identity"`
+	Identity     Identity                  `json:"identity"`
+	Entitlements map[string]ServiceDetails `json:"entitlements"`
 }
 
 // Key the key for the XRHID in that gets added to the context
