@@ -163,6 +163,23 @@ var _ = Describe("Identity", func() {
 		})
 	})
 
+	Context("With rhel and ansible entitlement set in the x-rh-id header", func() {
+		It("should 200 and set the entitlement", func() {
+			req.Header.Set("x-rh-identity", getBase64(`{ "identity": {"type": "Associate", "internal": {"org_id": "1979710"} }, "entitlements": {"rhel": {"is_entitled": true}, "ansible": {"is_entitled": true, "is_trial": true} } }`))
+
+			boilerWithCustomHandler(req, 200, "", func() http.HandlerFunc {
+				fn := func(rw http.ResponseWriter, nreq *http.Request) {
+					id, _ := identity.Get(nreq.Context())
+					Expect(id.Entitlements["rhel"].IsEntitled).To(Equal(true))
+					Expect(id.Entitlements["rhel"].IsTrial).To(Equal(false))
+					Expect(id.Entitlements["ansible"].IsEntitled).To(Equal(true))
+					Expect(id.Entitlements["ansible"].IsTrial).To(Equal(true))
+				}
+				return http.HandlerFunc(fn)
+			}())
+		})
+	})
+
 	Context("With a -1 account_number in the x-rh-id header", func() {
 		It("should throw a 400 with a descriptive message", func() {
 			for _, jsonIdentity := range validJson {
