@@ -144,7 +144,7 @@ var _ = Describe("Identity", func() {
 
 	Context("With missing account_number in the x-rh-id header", func() {
 		It("should throw a 400 with a descriptive message", func() {
-			req.Header.Set("x-rh-identity", getBase64(`{ "type": "User", "org_id": "1979710", "internal": { "org_id": "1979710" } }`))
+			req.Header.Set("x-rh-identity", getBase64(`{ "identity": { "type": "User", "org_id": "1979710", "internal": { "org_id": "1979710" } } }`))
 			boiler(req, 400, "Bad Request: x-rh-identity header has an invalid or missing account number\n")
 		})
 	})
