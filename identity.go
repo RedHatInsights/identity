@@ -100,6 +100,12 @@ func BasePolicy(next http.Handler) http.Handler {
 			doError(w, 401, "missing identity header")
 			return
 		}
+
+		if id.Identity.OrgID == "" || id.Identity.Internal.OrgID == "" {
+			doError(w, 400, "x-rh-identity header has an invalid or missing org_id")
+			return
+		}
+
 		if id.Identity.Type == "Associate" && id.Identity.AccountNumber == "" {
 			next.ServeHTTP(w, r)
 			return
@@ -107,11 +113,6 @@ func BasePolicy(next http.Handler) http.Handler {
 
 		if id.Identity.AccountNumber == "" || id.Identity.AccountNumber == "-1" {
 			doError(w, 400, "x-rh-identity header has an invalid or missing account number")
-			return
-		}
-
-		if id.Identity.OrgID == "" || id.Identity.Internal.OrgID == "" {
-			doError(w, 400, "x-rh-identity header has an invalid or missing org_id")
 			return
 		}
 

@@ -151,7 +151,7 @@ var _ = Describe("Identity", func() {
 
 	Context("With a valid x-rh-id header", func() {
 		It("should 200 and set the type to associate", func() {
-			req.Header.Set("x-rh-identity", getBase64(`{ "identity": {"type": "Associate"} }`))
+			req.Header.Set("x-rh-identity", getBase64(`{ "identity": {"type": "Associate", "internal": { "org_id": "1979710" } } }`))
 
 			boilerWithCustomHandler(req, 200, "", func() http.HandlerFunc {
 				fn := func(rw http.ResponseWriter, nreq *http.Request) {
