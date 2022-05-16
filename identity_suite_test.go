@@ -209,4 +209,15 @@ var _ = Describe("Identity", func() {
 			boiler(req, 400, "Bad Request: x-rh-identity header is missing type\n")
 		})
 	})
+
+	Context("Without Extractor installed", func() {
+		It("should throw a 401", func() {
+			rr := httptest.NewRecorder()
+			handler := identity.BasePolicy(GetTestHandler(true))
+			handler.ServeHTTP(rr, req)
+
+			Expect(rr.Body.String()).To(Equal("Unauthorized: missing identity header\n"))
+			Expect(rr.Code).To(Equal(401))
+		})
+	})
 })
