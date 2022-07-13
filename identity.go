@@ -112,7 +112,7 @@ func BasePolicy(next http.Handler) http.Handler {
 			return
 		}
 
-		if id.Identity.AccountNumber == "" || id.Identity.AccountNumber == "-1" {
+		if id.Identity.AccountNumber == "-1" {
 			doError(w, 400, "x-rh-identity header has an invalid or missing account number")
 			return
 		}
