@@ -141,6 +141,21 @@ var _ = Describe("Identity", func() {
 		})
 	})
 
+	Context("With missing account_number in the x-rh-id header", func() {
+		It("should 200", func() {
+			req.Header.Set("x-rh-identity", getBase64(`{ "identity": {"org_id": "1979710", "auth_type": "basic-auth", "type": "Associate", "internal": {"org_id": "1979710"} } }`))
+			boilerWithCustomHandler(req, 200, "", func() http.HandlerFunc {
+				fn := func(rw http.ResponseWriter, nreq *http.Request) {
+					id, _ := identity.Get(nreq.Context())
+					Expect(id.Identity.OrgID).To(Equal("1979710"))
+					Expect(id.Identity.Internal.OrgID).To(Equal("1979710"))
+					Expect(id.Identity.AccountNumber).To(Equal(""))
+				}
+				return http.HandlerFunc(fn)
+			}())
+		})
+	})
+
 	Context("With a valid x-rh-id header", func() {
 		It("should 200 and set the type to associate", func() {
 			req.Header.Set("x-rh-identity", getBase64(`{ "identity": {"type": "Associate"} }`))
