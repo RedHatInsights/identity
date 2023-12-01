@@ -13,9 +13,10 @@ import (
 )
 
 var validJson = [...]string{
-	`{ "identity": {"account_number": "540155", "org_id": "1979710", "type": "User", "internal": {"org_id": "1979710"} } }`,
-	`{ "identity": {"account_number": "540155", "org_id": "1979710", "type": "Associate", "internal": {"org_id": "1979710"} } }`,
-	`{ "identity": {"account_number": "540155", "type": "Associate", "internal": {"org_id": "1979710"} } }`,
+	`{ "identity": {"account_number": "540155", "auth_type": "jwt-auth", "org_id": "1979710", "type": "User", "internal": {"org_id": "1979710"} } }`,
+	`{ "identity": {"account_number": "540155", "auth_type": "cert-auth", "org_id": "1979710", "type": "Associate", "internal": {"org_id": "1979710"} } }`,
+	`{ "identity": {"account_number": "540155", "auth_type": "basic-auth", "type": "Associate", "internal": {"org_id": "1979710"} } }`,
+	`{ "identity": {"account_number": "540155", "auth_type": "cert-auth", "org_id": "1979710", "type": "Associate", "internal": {} } }`,
 }
 
 func GetTestHandler(allowPass bool) http.HandlerFunc {
@@ -73,7 +74,6 @@ var _ = Describe("Identity", func() {
 						id, ok := identity.Get(nreq.Context())
 						Expect(ok).To(BeTrue())
 						Expect(id.Identity.OrgID).To(Equal("1979710"))
-						Expect(id.Identity.Internal.OrgID).To(Equal("1979710"))
 						Expect(id.Identity.AccountNumber).To(Equal("540155"))
 					}
 					return http.HandlerFunc(fn)
@@ -189,15 +189,8 @@ var _ = Describe("Identity", func() {
 
 	Context("With missing org_id in the x-rh-id header", func() {
 		It("should throw a 400 with a descriptive message", func() {
-			var missingOrgIDJson = [...]string{
-				`{ "identity": {"account_number": "540155", "type": "User", "internal": {} } }`,
-				`{ "identity": {"account_number": "540155", "org_id": "1979710", "type": "User", "internal": {} } }`,
-			}
-
-			for _, jsonIdentity := range missingOrgIDJson {
-				req.Header.Set("x-rh-identity", getBase64(jsonIdentity))
-				boiler(req, 400, "Bad Request: x-rh-identity header has an invalid or missing org_id\n")
-			}
+			req.Header.Set("x-rh-identity", getBase64(`{ "identity": {"account_number": "540155", "type": "User", "internal": {} } }`))
+			boiler(req, 400, "Bad Request: x-rh-identity header has an invalid or missing org_id\n")
 		})
 	})
 
