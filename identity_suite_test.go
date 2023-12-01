@@ -12,10 +12,29 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var serviceAccountIdentity = `
+{
+  "identity": {
+    "account_number": "540155",
+    "auth_type": "jwt-auth",
+    "internal": {
+      "org_id": "1979710"
+    },
+    "org_id": "1979710",
+    "service_account": {
+      "client_id": "0000",
+      "username": "jdoe"
+    },
+    "type": "ServiceAccount"
+  }
+}
+`
+
 var validJson = [...]string{
 	`{ "identity": {"account_number": "540155", "org_id": "1979710", "type": "User", "internal": {"org_id": "1979710"} } }`,
 	`{ "identity": {"account_number": "540155", "org_id": "1979710", "type": "Associate", "internal": {"org_id": "1979710"} } }`,
 	`{ "identity": {"account_number": "540155", "type": "Associate", "internal": {"org_id": "1979710"} } }`,
+	serviceAccountIdentity,
 }
 
 func GetTestHandler(allowPass bool) http.HandlerFunc {
@@ -92,6 +111,19 @@ var _ = Describe("Identity", func() {
 					return http.HandlerFunc(fn)
 				}())
 			}
+		})
+		It("should 200 and set the correct values for a ServiceAccount identity", func() {
+			req.Header.Set("x-rh-identity", getBase64(serviceAccountIdentity))
+
+			boilerWithCustomHandler(req, 200, "", func() http.HandlerFunc {
+				fn := func(rw http.ResponseWriter, nreq *http.Request) {
+					id, _ := identity.Get(nreq.Context())
+					Expect(id.Identity.Type).To(Equal("ServiceAccount"))
+					Expect(id.Identity.ServiceAccount.Username).To(Equal("jdoe"))
+					Expect(id.Identity.ServiceAccount.ClientId).To(Equal("0000"))
+				}
+				return http.HandlerFunc(fn)
+			}())
 		})
 	})
 	Context("With a missing x-rh-id header", func() {

@@ -43,16 +43,23 @@ type X509 struct {
 	IssuerDN  string `json:"issuer_dn"`
 }
 
+// ServiceAccount is the "service_account" field of an XRHID
+type ServiceAccount struct {
+	ClientId string `json:"client_id"`
+	Username string `json:"username"`
+}
+
 // Identity is the main body of the XRHID
 type Identity struct {
-	AccountNumber string                 `json:"account_number"`
-	OrgID         string                 `json:"org_id"`
-	Internal      Internal               `json:"internal"`
-	User          User                   `json:"user,omitempty"`
-	System        map[string]interface{} `json:"system,omitempty"`
-	Associate     Associate              `json:"associate,omitempty"`
-	X509          X509                   `json:"x509,omitempty"`
-	Type          string                 `json:"type"`
+	AccountNumber  string                 `json:"account_number"`
+	OrgID          string                 `json:"org_id"`
+	Internal       Internal               `json:"internal"`
+	User           User                   `json:"user,omitempty"`
+	System         map[string]interface{} `json:"system,omitempty"`
+	Associate      Associate              `json:"associate,omitempty"`
+	X509           X509                   `json:"x509,omitempty"`
+	ServiceAccount ServiceAccount         `json:"service_account,omitempty"`
+	Type           string                 `json:"type"`
 }
 
 // ServiceDetails describe the services the org is entitled to
